@@ -21,21 +21,20 @@ models:
  nyc_analytics:
    +materialized: table
 
-   hw2:
+   assignment_work:
      staging:
        +materialized: table
-       +schema: nyc_transit_restaurants_hw2_staging
+       +schema: nyc_transit_restaurants_staging
 
      marts:
        +materialized: table
-       +schema: nyc_transit_restaurants_hw2_marts
+       +schema: nyc_transit_restaurants_marts
       
        shared:
          +materialized: table
 
-       open_restaurants:
+       open_restaurant_apps:
          +materialized: table
 
        dot_311:
          +materialized: table
-
