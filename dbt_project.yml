@@ -38,3 +38,21 @@ models:
 
        dot_311:
          +materialized: table
+
+    project_work:
+      staging:
+      +materialized: table
+      +schema: cis9440_project_group3_staging # dataset name for the staging data for project
+
+      marts:
+       +materialized: table
+       +schema: cis9440_project_group3_warehouse_marts # dataset name for the warehouse marts data for project
+      
+       shared:
+         +materialized: table
+
+       nypd_crash_data:
+         +materialized: table
+
+       street_311:
+         +materialized: table
