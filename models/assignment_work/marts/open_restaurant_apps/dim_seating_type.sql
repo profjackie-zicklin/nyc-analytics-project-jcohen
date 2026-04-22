@@ -16,9 +16,9 @@ seating_dimension AS (
            'approved_for_roadway'
        ]) }} AS seating_type_key,
 
-       seating_interest,
-       approved_for_sidewalk,
-       approved_for_roadway
+       seating_interest AS seating_interest,
+       approved_for_sidewalk AS approved_for_sidewalk_seating,
+       approved_for_roadway AS approved_for_roadway_seating
 
    FROM seating_types
 )

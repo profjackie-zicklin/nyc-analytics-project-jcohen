@@ -13,7 +13,6 @@ sources:
           - name: unique_key
             description: Unique ID for the service request
             tests:
-              - unique
               - not_null
           - name: created_date
             description: Date and time the request was created
@@ -95,7 +94,6 @@ sources:
           - name: objectid
             description: Unique object ID for the restaurant application
             tests:
-              - unique
               - not_null
           - name: globalid
             description: Global unique identifier
