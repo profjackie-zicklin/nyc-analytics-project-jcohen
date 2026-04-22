@@ -16,8 +16,9 @@ seating_dimension AS (
            'approved_for_roadway'
        ]) }} AS seating_type_key,
 
-       -- TODO: fill in the rest of this SELECT statement
-       --  based on the dimensional model!
+       seating_interest,
+       approved_for_sidewalk,
+       approved_for_roadway
 
    FROM seating_types
 )
