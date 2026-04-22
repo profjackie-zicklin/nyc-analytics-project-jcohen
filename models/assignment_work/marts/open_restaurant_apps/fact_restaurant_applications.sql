@@ -1,4 +1,4 @@
- -- Fact table for NYC Open Restaurant applications                                                                                                                                 
+-- Fact table for NYC Open Restaurant applications                                                                                                                                 
   -- One row per application submission                                                                                                                                              
                                                                                                                                                                                      
   WITH restaurant_apps AS (                                                                                                                                                          
@@ -6,9 +6,9 @@
   ),                                                                                                                                                                                 
                                                                                                                                                                                      
   dim_date AS (
-      SELECT * FROM {{ ref('dim_date') }}                                                                                                                                            
+      SELECT * FROM {{ ref('dim_date') }}
   ),
-                                                                                                                                                                                     
+
   dim_location AS (
       SELECT * FROM {{ ref('dim_location') }}
   ),
@@ -41,19 +41,19 @@
           -- Location details
           CAST(r.business_address AS STRING) AS business_address,
           CAST(r.street AS STRING) AS street,
-          CAST(r.building_number AS STRING) AS building_number,
-          CAST(r.latitude AS FLOAT) AS latitude,
-          CAST(r.longitude AS FLOAT) AS longitude,
+          CAST(r.bulding_number AS STRING) AS building_number,
+          CAST(r.latitude AS FLOAT64) AS latitude,
+          CAST(r.longitude AS FLOAT64) AS longitude,
 
           -- Sidewalk measurements
-          CAST(r.approved_sidewalk_dimensions_length AS INT) AS sidewalk_length_ft,
-          CAST(r.approved_sidewalk_dimensions_width AS INT) AS sidewalk_width_ft,
-          CAST(r.approved_sidewalk_dimensions_area AS INT) AS sidewalk_area_sqft,
+          CAST(r.sidewalk_dimensions_length AS INT) AS sidewalk_length_ft,
+          CAST(r.sidewalk_dimensions_width AS INT) AS sidewalk_width_ft,
+          CAST(r.sidewalk_dimensions_area AS INT) AS sidewalk_area_sqft,
 
           -- Compliance flags
-          CAST(r.qualify_alcohol AS BOOLEAN) AS qualify_alcohol,
-          CAST(r.landmark_district_or_building AS BOOLEAN) AS is_landmark_location,
-          CAST(r.health_compliance_terms AS BOOLEAN) AS health_compliance_terms_accepted,
+          CASE WHEN r.qualify_alcohol  = "yes" THEN True ELSE False END AS qualify_alcohol,
+          CASE WHEN r.landmark_district_or_building  = "yes" THEN True ELSE False END AS is_landmark_location,
+          CASE WHEN r.healthcompliance_terms = "yes" THEN True ELSE False END AS health_compliance_terms_accepted,
 
           -- Liquor license
           CAST(r.sla_serial_number AS STRING) AS sla_serial_number,
@@ -65,19 +65,18 @@
           ON CAST(r.time_of_submission AS DATE) = d.full_date
 
       LEFT JOIN dim_location l
-          ON r.zip_code = l.zip_code
-          AND r.borough = l.borough
+          ON r.borough = l.borough
+          AND r.zip_code = l.zip_code
 
       LEFT JOIN dim_restaurant rest
-          ON r.food_service_establishment = rest.food_service_establishment AND 
-          r.business_address = rest.business_address
+          ON r.food_service_establishment = rest.food_service_establishment
+          AND r.business_address = rest.business_address
 
       LEFT JOIN dim_seating_type st
-          ON 
-          st.seating_interest
-       CASE WHEN approved_for_roadway_seating = "yes" then True else False END AS approved_for_roadway,
-       CASE WHEN approved_for_sidewalk_seating = "yes" then True else False END AS approved_for_sidewalk,
-   
+          ON r.seating_interest_sidewalk = st.seating_interest
+          AND (CASE WHEN r.approved_for_sidewalk_seating = 'yes' THEN True ELSE False END) = st.approved_for_sidewalk
+          AND (CASE WHEN r.approved_for_roadway_seating = 'yes' THEN True ELSE False END) = st.approved_for_roadway
   )
 
   SELECT * FROM fact_restaurant_apps
+
