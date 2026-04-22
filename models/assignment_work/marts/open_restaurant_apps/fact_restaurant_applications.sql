@@ -73,7 +73,11 @@
           r.business_address = rest.business_address
 
       LEFT JOIN dim_seating_type st
-          ON r.objectid = st.objectid
+          ON 
+          st.seating_interest
+       CASE WHEN approved_for_roadway_seating = "yes" then True else False END AS approved_for_roadway,
+       CASE WHEN approved_for_sidewalk_seating = "yes" then True else False END AS approved_for_sidewalk,
+   
   )
 
   SELECT * FROM fact_restaurant_apps
