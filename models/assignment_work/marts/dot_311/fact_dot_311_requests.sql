@@ -85,7 +85,7 @@
 
           -- Additional attributes
           r.status,
-          r.open_data_channel_type AS channel_type,
+        --   r.open_data_channel_type AS channel_type,
           r.resolution_description
     
       -- **** INSIDE that, WRITE THIS 4th, join by join:
@@ -99,7 +99,7 @@
 
       LEFT JOIN dim_location l
           ON r.borough = l.borough
-          AND r.zip_code = l.zip_code
+          AND r.incident_zip = l.zip_code
 
       LEFT JOIN dim_complaint c
           ON r.complaint_type = c.complaint_type
