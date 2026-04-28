@@ -38,4 +38,8 @@ models:
 
        dot_311:
          +materialized: table
+
+     analytics:
+       +materialized: table
+       +schema: nyc_transit_restaurants_analytics
     
