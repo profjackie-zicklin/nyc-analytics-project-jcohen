@@ -15,7 +15,7 @@ enriched AS (
         *,
 
         CASE
-            WHEN LOWER(complaint_type) LIKE '%street%' THEN 'Street Issues'
+            WHEN LOWER(complaint_type) LIKE '%street%' OR LOWER(complaint_type) LIKE '%highway%' THEN 'Street Issues'
             WHEN LOWER(complaint_type) LIKE '%traffic%' THEN 'Traffic Issues'
             WHEN LOWER(complaint_type) LIKE '%sidewalk%' THEN 'Sidewalk Issues'
             WHEN LOWER(complaint_type) LIKE '%bike%' THEN 'Bike Issues'
