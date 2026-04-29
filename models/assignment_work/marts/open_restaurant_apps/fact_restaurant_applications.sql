@@ -38,6 +38,8 @@
           rest.restaurant_key AS restaurant_key,
           st.seating_type_key AS seating_type_key,
 
+          -- Data from staging table directly that doesn't come from dimensions follows
+
           -- Location details
           CAST(r.business_address AS STRING) AS business_address,
           CAST(r.street AS STRING) AS street,
@@ -45,22 +47,23 @@
           CAST(r.latitude AS FLOAT64) AS latitude,
           CAST(r.longitude AS FLOAT64) AS longitude,
 
-          -- Sidewalk measurements
+          -- Sidewalk measurements -- make extra sure they're the right type for my plan / understanding of the existing data
           CAST(r.sidewalk_dimensions_length AS INT) AS sidewalk_length_ft,
           CAST(r.sidewalk_dimensions_width AS INT) AS sidewalk_width_ft,
           CAST(r.sidewalk_dimensions_area AS INT) AS sidewalk_area_sqft,
 
-          -- Compliance flags
+          -- Compliance flags -- derived columns to make them booleans
           CASE WHEN r.qualify_alcohol  = "yes" THEN True ELSE False END AS qualify_alcohol,
           CASE WHEN r.landmark_district_or_building  = "yes" THEN True ELSE False END AS is_landmark_location,
           CASE WHEN r.healthcompliance_terms = "yes" THEN True ELSE False END AS health_compliance_terms_accepted,
 
-          -- Liquor license
+          -- Liquor license (more double-checking with type CAST ing, although could also do that in staging table)
           CAST(r.sla_serial_number AS STRING) AS sla_serial_number,
           CAST(r.sla_license_type AS STRING) AS sla_license_type
 
       FROM restaurant_apps r
-
+      
+      -- JOINs on the surrogate key items from staging
       LEFT JOIN dim_date d
           ON CAST(r.time_of_submission AS DATE) = d.full_date
 

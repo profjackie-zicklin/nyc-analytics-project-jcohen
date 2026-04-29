@@ -15,7 +15,7 @@ WITH restaurants AS (
         AVG(longitude) as longitude
     FROM {{ ref('stg_nyc_open_restaurant_apps') }}
     WHERE food_service_establishment IS NOT NULL  -- Must have permit
-        OR business_address IS NOT NULL  -- Or must have address
+        OR business_address IS NOT NULL  -- Or must have address (this decision would be made based on prior staging/raw data exploration)
     GROUP BY
         food_service_establishment,
         business_address
