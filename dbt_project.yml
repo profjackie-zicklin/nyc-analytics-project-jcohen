@@ -39,7 +39,55 @@ models:
        dot_311:
          +materialized: table
 
+    project_work:
+     staging:
+       +materialized: table
+       +schema: group9project_staging
+
+     marts:
+       +materialized: table
+       +schema: group9project_warehouse
+      
+       conformed:
+         +materialized: table
+
+       vehicle_collisions:
+         +materialized: table
+
+       dept_transportation_311_stuff:
+         +materialized: table
+
+
+
+
+
+
+
+
      analytics:
        +materialized: table
        +schema: nyc_transit_restaurants_analytics
+
+    project_work:
+     staging:
+       +materialized: table
+       +schema: nyc_project_staging
+
+     marts:
+       +materialized: table
+       +schema: nyc_project_marts
+      
+       conformed:
+         +materialized: table
+
+       nypd_comment_surveys:
+         +materialized: table
+
+       nyc_311_traffic_complaints:
+         +materialized: table
+
+      analytics:
+       +materialized: table
+       +schema: nyc_project_analytics
+
     
