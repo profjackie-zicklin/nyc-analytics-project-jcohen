@@ -32,7 +32,7 @@
       r.year,
       r.month,
       r.total_restaurants,
-      c.total_complaints,
+      c.total_complaints as total_sidewalk_or_street_complaints,
       ROUND(c.total_complaints * 1.0 / r.total_restaurants, 2) AS complaints_per_restaurant
   FROM restaurant_counts r
   JOIN sidewalk_street_complaint_counts c
