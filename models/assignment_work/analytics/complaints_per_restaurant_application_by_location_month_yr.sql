@@ -22,7 +22,7 @@
       INNER JOIN {{ ref('dim_location') }} l ON f.location_key = l.location_key
       INNER JOIN {{ ref('dim_date') }} d ON f.created_date_key = d.date_key
       INNER JOIN {{ ref('dim_complaint_type') }} ct ON f.complaint_type_key = ct.complaint_type_key
-      WHERE ct.complaint_category IN ('Street Issues', 'Sidewalk Issues')
+    --   WHERE ct.complaint_category IN ('Street Issues', 'Sidewalk Issues')
       GROUP BY l.borough, l.zip_code, d.year, d.month
   )
 
