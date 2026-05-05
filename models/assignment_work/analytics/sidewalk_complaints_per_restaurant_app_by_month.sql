@@ -17,9 +17,9 @@ WITH restaurant_counts AS (
           d.month,
           COUNT(*) AS total_complaints
       FROM {{ ref('fact_dot_311_requests') }} f
-      JOIN {{ ref('dim_location') }} l ON f.location_key = l.location_key
-      JOIN {{ ref('dim_date') }} d ON f.created_date_key = d.date_key
-      JOIN {{ ref('dim_complaint_type') }} ct ON f.complaint_type_key = ct.complaint_type_key
+      INNER JOIN {{ ref('dim_location') }} l ON f.location_key = l.location_key
+      INNER JOIN {{ ref('dim_date') }} d ON f.created_date_key = d.date_key
+      INNER JOIN {{ ref('dim_complaint_type') }} ct ON f.complaint_type_key = ct.complaint_type_key
       WHERE ct.complaint_category = 'Sidewalk Issues'
       GROUP BY l.borough, l.zip_code, d.month
   )
