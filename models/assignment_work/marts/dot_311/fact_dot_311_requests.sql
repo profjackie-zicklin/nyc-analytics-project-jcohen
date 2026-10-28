@@ -27,7 +27,7 @@ fact AS (
         {{ dbt_utils.generate_surrogate_key(['s.request_id']) }} AS service_request_key,
 
         -- Degenerate dimension (business identifier)
-        s.request_id,
+        s.request_id as unique_key,
 
         -- Staging guarantees created_date: a NULL key here is a bug
         created_d.date_key AS created_date_key,
@@ -40,6 +40,7 @@ fact AS (
 
         -- Staging guarantees complaint_type
         ct.complaint_type_key,
+        rc.request_channel_key,
 
         s.status,
         s.method_of_submission,
@@ -48,16 +49,23 @@ fact AS (
 
     FROM stg_311 s
 
+    -- Left joins because you want all the rows from staging in the fact rep'd, with key information from dimensions
+    -- JOIN ON the items that make up the surrogate key in the dimension
     LEFT JOIN dim_date created_d
         ON CAST(s.created_date AS DATE) = created_d.full_date
     LEFT JOIN dim_date closed_d
         ON CAST(s.closed_date AS DATE) = closed_d.full_date
 
     -- IS NOT DISTINCT FROM so a NULL zip / council_district matches the dim row
+    -- Could leave out the NULL exception and make these =s
     LEFT JOIN dim_location l
         ON  s.borough          IS NOT DISTINCT FROM l.borough
         AND s.council_district IS NOT DISTINCT FROM l.council_district
         AND s.zip              IS NOT DISTINCT FROM l.zip
+    
+    LEFT JOIN dim_request_channel rc 
+        ON s.open_data_channel_type IS NOT DISTINCT FROM rc.open_data_channel_type
+        AND s.agency IS NOT DISTINCT FROM rc.agency
 
     LEFT JOIN dim_complaint_type ct
         ON  s.complaint_type IS NOT DISTINCT FROM ct.complaint_type
