@@ -25,34 +25,30 @@ fact AS (
     SELECT
         -- Fact's own surrogate key, from the grain (this is deduped in staging)
         {{ dbt_utils.generate_surrogate_key(['s.request_id']) }} AS service_request_key,
-
         -- Degenerate dimension (business identifier)
         s.request_id as unique_key,
-
         -- Staging guarantees created_date: a NULL key here is a bug
         created_d.date_key AS created_date_key,
-
         -- Open requests legitimately have no closed date -> unknown member
         CASE WHEN s.closed_date IS NULL THEN '-1' ELSE closed_d.date_key END AS closed_date_key,
-
-        -- Staging guarantees borough; zip may be NULL and still matches its dim row
+        -- Always will have a location key
         l.location_key,
-
-        -- Staging guarantees complaint_type
+        -- Always will have a complaint type for this fact table
         ct.complaint_type_key,
-        -- rc.request_channel_key,
+        -- rc.request_channel_key, -- don't have that data right now
 
+        -- Plus the data we're passing on right from staging -> fact table
         s.status,
-        s.method_of_submission,
-        TIMESTAMP_DIFF(s.closed_date, s.created_date, HOUR) AS hours_to_close,
-        TIMESTAMP_DIFF(s.closed_date, s.created_date, DAY)  AS days_to_close,
+        -- s.method_of_submission, -- don't have this data right now
         s.latitude,
         s.longitude,
         s.street_name,
         s.incident_address,
         s.bbl,
-        s.agency
-
+        s.agency,
+        -- Calculated fields 
+        TIMESTAMP_DIFF(s.closed_date, s.created_date, HOUR) AS hours_to_close,
+        TIMESTAMP_DIFF(s.closed_date, s.created_date, DAY)  AS days_to_close
     FROM stg_311 s
 
     -- Left joins because you want all the rows from staging in the fact rep'd, with key information from dimensions
