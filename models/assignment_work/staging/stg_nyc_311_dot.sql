@@ -53,7 +53,7 @@ cleaned AS (
                AND REGEXP_CONTAINS(CAST(incident_zip AS STRING), r'^\d{5}-\d{4}')
            THEN CAST(incident_zip AS STRING)
            ELSE NULL
-       END AS incident_zip,
+       END AS zip,
 
        -- Location - standardized borough, just in case
        CASE
@@ -92,4 +92,4 @@ cleaned AS (
 )
 
 SELECT * FROM cleaned
--- All should be part of this table: stg_nyc_311_dot
+-- All should be part of this table after running: stg_nyc_311_dot
