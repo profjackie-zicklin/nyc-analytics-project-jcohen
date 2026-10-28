@@ -15,16 +15,16 @@ all_locations AS (
         borough, zip
     FROM stg_311
     WHERE borough IS NOT NULL
-       OR council_district IS NOT NULL
+    --    OR council_district IS NOT NULL
        OR zip IS NOT NULL
 
     UNION DISTINCT
 
     SELECT DISTINCT
-        ??????????
+        borough, zip--, council_district
     FROM stg_dob
     WHERE borough IS NOT NULL
-       OR council_district IS NOT NULL
+    --    OR council_district IS NOT NULL
        OR zip IS NOT NULL
 
 ),
@@ -33,11 +33,11 @@ location_dimension AS (
 
     SELECT
         {{ dbt_utils.generate_surrogate_key([
-            'borough', 'council_district', 'zip'
-        ]) }} AS location_key,
+            'borough', 'zip' 
+        ]) }} AS location_key, -- not council district
 
         borough,
-        council_district,
+        -- council_district,
         zip
 
     FROM all_locations
@@ -51,7 +51,7 @@ null_placeholder AS (
     SELECT
         '-1' AS location_key,
         CAST(NULL AS STRING) AS borough,
-        CAST(NULL AS STRING) AS council_district,
+        -- CAST(NULL AS STRING) AS council_district,
         CAST(NULL AS STRING) AS zip
 )
 

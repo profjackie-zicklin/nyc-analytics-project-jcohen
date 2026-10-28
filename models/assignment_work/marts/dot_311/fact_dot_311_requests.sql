@@ -40,7 +40,7 @@ fact AS (
 
         -- Staging guarantees complaint_type
         ct.complaint_type_key,
-        rc.request_channel_key,
+        -- rc.request_channel_key,
 
         s.status,
         s.method_of_submission,
@@ -66,12 +66,12 @@ fact AS (
     -- Could leave out the NULL exception and make these =s
     LEFT JOIN dim_location l
         ON  s.borough          IS NOT DISTINCT FROM l.borough
-        AND s.council_district IS NOT DISTINCT FROM l.council_district
+        -- AND s.council_district IS NOT DISTINCT FROM l.council_district
         AND s.zip              IS NOT DISTINCT FROM l.zip
     
-    LEFT JOIN dim_request_channel rc 
-        ON s.open_data_channel_type IS NOT DISTINCT FROM rc.open_data_channel_type
-        AND s.agency IS NOT DISTINCT FROM rc.agency
+    -- LEFT JOIN dim_request_channel rc 
+    --     ON s.open_data_channel_type IS NOT DISTINCT FROM rc.open_data_channel_type
+    --     AND s.agency IS NOT DISTINCT FROM rc.agency
 
     LEFT JOIN dim_complaint_type ct
         ON  s.complaint_type IS NOT DISTINCT FROM ct.complaint_type
