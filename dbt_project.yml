@@ -24,11 +24,11 @@ models:
    assignment_work:
      staging:
        +materialized: table
-       +schema: nyc_transit_restaurants_staging
+       +schema: nyc_311_staging_data_f26
 
      marts:
        +materialized: table
-       +schema: nyc_transit_restaurants_marts
+       +schema: nyc_311_marts_f26
       
        shared:
          +materialized: table
@@ -39,35 +39,4 @@ models:
        dot_311:
          +materialized: table
 
-     analytics:
-       +materialized: table
-       +schema: nyc_transit_restaurants_analytics
        
-
-   project_work:
-     staging:
-       +materialized: table
-       +schema: group9project_staging
-
-     marts:
-       +materialized: table
-       +schema: group9project_warehouse
-      
-       conformed:
-         +materialized: table
-
-       vehicle_collisions:
-         +materialized: table
-
-       dept_transportation_311_stuff:
-         +materialized: table
-
-     analytics:
-      +materialized: table
-      +schema: group9project_analytics
-
-
-
-
-
-

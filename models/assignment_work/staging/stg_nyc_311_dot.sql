@@ -25,8 +25,7 @@ cleaned AS (
            cross_street_1,
            cross_street_2,
            latitude,
-           longitude,
-           open_data_channel_type
+           longitude
        ),
 
        -- Identifiers
@@ -72,8 +71,8 @@ cleaned AS (
        CAST(latitude AS DECIMAL) AS latitude,
        CAST(longitude AS DECIMAL) AS longitude,
 
-       -- Clearer column name as well for this one
-       CAST(open_data_channel_type AS STRING) AS method_of_submission,
+    --    -- Clearer column name as well for this one
+    --    CAST(open_data_channel_type AS STRING) AS method_of_submission,
 
        -- Metadata
        CURRENT_TIMESTAMP() AS _stg_loaded_at
