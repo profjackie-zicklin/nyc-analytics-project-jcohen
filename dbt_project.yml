@@ -62,6 +62,9 @@ models:
        dept_transportation_311_stuff:
          +materialized: table
 
+     analytics:
+      +materialized: table
+      +schema: group9project_analytics
 
 
 

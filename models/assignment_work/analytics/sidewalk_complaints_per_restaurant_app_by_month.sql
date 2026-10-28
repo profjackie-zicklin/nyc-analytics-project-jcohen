@@ -3,10 +3,10 @@ WITH restaurant_counts AS (
           l.borough,                                                                                                                                                                 
           l.zip_code,                    
           d.month,                                                                                                                                                                   
-          COUNT(*) AS total_restaurants                                                                                                                                              
+          COUNT(*) AS total_restaurants -- this means total number of restaurant applications for seating                                                                                                                                              
       FROM {{ ref('fact_restaurant_applications') }} f
-      JOIN {{ ref('dim_location') }} l ON f.location_key = l.location_key
-      JOIN {{ ref('dim_date') }} d ON f.submission_date_key = d.date_key
+      INNER JOIN {{ ref('dim_location') }} l ON f.location_key = l.location_key
+      INNER JOIN {{ ref('dim_date') }} d ON f.submission_date_key = d.date_key
       GROUP BY l.borough, l.zip_code, d.month
   ),
 
@@ -28,11 +28,11 @@ WITH restaurant_counts AS (
       r.borough,
       r.zip_code,
       r.month,
-      CONCAT('In ', FORMAT_DATE('%B', DATE(2000, r.month, 1))) AS month_label,
+      CONCAT('In ', FORMAT_DATE('%B', DATE(2000, r.month, 1))) AS month_label, -- optional
       r.total_restaurants,
-      c.total_complaints AS total_sidewalk_complaints,
+      c.total_complaints AS total_sidewalk_complaints
   FROM restaurant_counts r
-  JOIN sidewalk_complaint_counts c
+  INNER JOIN sidewalk_complaint_counts c
       ON r.borough = c.borough
       AND r.zip_code = c.zip_code
       AND r.month = c.month
