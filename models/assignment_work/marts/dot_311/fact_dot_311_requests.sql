@@ -45,7 +45,13 @@ fact AS (
         s.status,
         s.method_of_submission,
         TIMESTAMP_DIFF(s.closed_date, s.created_date, HOUR) AS hours_to_close,
-        TIMESTAMP_DIFF(s.closed_date, s.created_date, DAY)  AS days_to_close
+        TIMESTAMP_DIFF(s.closed_date, s.created_date, DAY)  AS days_to_close,
+        s.latitude,
+        s.longitude,
+        s.street_name,
+        s.incident_address,
+        s.bbl,
+        s.agency
 
     FROM stg_311 s
 
