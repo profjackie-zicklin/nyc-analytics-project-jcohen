@@ -1,244 +1,67 @@
----- Commented: what I was working on before, not sure it will work, todo review with group
--- -- Grain: one row per request
+-- Fact table: DOT 311 service requests
+-- Grain: one row per service request (request_id, controlled in staging model)
 
--- -- --Pattern for fact table model:
--- -- --   WITH
--- -- --     [fact_source] AS (SELECT * FROM staging),
--- -- --     [dim1] AS (SELECT surrogate_key, join_keys FROM dim1),
--- -- --     [dim2] AS (SELECT surrogate_key, join_keys FROM dim2),
--- -- --     ...
--- -- --     final AS (
--- -- --       SELECT
--- -- --         [fact fields from staging data, maybe renamed with AS ___],
--- -- --         [dim1 surrogate key] as dim1_key_or_whatever_name,
--- -- --         [dim2 surrogate key] as dim2_key_or_whatever_name, ...
--- -- --       FROM [fact_source]
--- -- --       LEFT JOIN [dim1] ON ... (join fields match)
--- -- --       LEFT JOIN [dim2] ON ... (join fields match)
--- -- --     )
--- -- --   SELECT * FROM final
--- ------
+-- Make sure you have access to staging and its grain
+WITH stg_311 AS (
+    SELECT * FROM {{ ref('stg_nyc_311_dot') }}
+),
 
--- -- WRITE THIS 1st - Start: all data from staging for relevant data
---   WITH requests AS (
---       SELECT * FROM {{ ref('stg_nyc_311_dot') }}
---   ),
--- -- Continue: named dimension CTEs that you'll need, either the sructure or build them out slowly. 
+-- All the dimensions in their own CTEs for easy reference
+dim_date AS (
+    SELECT * FROM {{ ref('dim_date') }}
+),
 
--- -- WRITE this - THESE 2nd... get all the dimension stuff you need
--- -- What context describes each row? Then, ONLY the surrogate key + join fields from each dimension.
--- -- Can reference back to the dimension tables for that.
---   dim_date AS (
---       SELECT date_key, full_date FROM {{ ref('dim_date') }}
---   ),
+dim_location AS (
+    SELECT * FROM {{ ref('dim_location') }}
+),
 
---   dim_location AS (
---       SELECT location_key, borough, zip_code FROM {{ ref('dim_location') }}
---   ),
+dim_complaint_type AS (
+    SELECT * FROM {{ ref('dim_complaint_type') }}
+),
 
---   dim_complaint AS (
---       SELECT
---           complaint_type_key,
---           complaint_type,
---           descriptor
---       FROM {{ ref('dim_complaint_type') }}
---   ),
---  -- WRITE this - the structure for this 3rd: final AS ( ... ) + see end of file as well
---   final AS (
---       -- WRITE this 5th -- fill in the select statement, first surrogate key, then each other thing needed in the fact from source
---       -- Some of which need to come from the LEFT JOINed tables
---       SELECT
---           -- Surrogate key, generated from unique id in data.
---           -- If there were none such (rare), could generate the surrogate id from a combo of things you are sure are unique in staging data.
---           {{ dbt_utils.generate_surrogate_key(['r.request_id']) }} AS request_key,
+-- Build intiial CTE for fact table
+fact AS (
 
---           -- Natural key, direct from staging data
---           r.request_id,
+    SELECT
+        -- Fact's own surrogate key, from the grain (this is deduped in staging)
+        {{ dbt_utils.generate_surrogate_key(['s.request_id']) }} AS service_request_key,
 
---           -- Timestamps, direct from staging data
---           r.created_date AS request_created_at,
---           r.closed_date AS request_closed_at,
+        -- Degenerate dimension (business identifier)
+        s.request_id,
 
---           -- Foreign keys: I usually start writing these as ??? AS created_date_key, etc
---           d_created.date_key AS created_date_key,
---           d_closed.date_key AS closed_date_key,
---           l.location_key,
---           c.complaint_type_key,
+        -- Staging guarantees created_date: a NULL key here is a bug
+        created_d.date_key AS created_date_key,
 
---           -- Request location details
---           r.incident_address,
---           r.address_type,
---           r.street_name,
---           r.cross_street_1,
---           r.cross_street_2,
---           r.latitude,
---           r.longitude,
+        -- Open requests legitimately have no closed date -> unknown member
+        CASE WHEN s.closed_date IS NULL THEN '-1' ELSE closed_d.date_key END AS closed_date_key,
 
---           -- Measures: small calculations included in a fact table
---           CASE
---               WHEN r.closed_date IS NOT NULL
---               THEN DATE_DIFF(CAST(r.closed_date AS DATE), CAST(r.created_date AS DATE), DAY)
---               ELSE NULL
---           END AS days_to_close,
+        -- Staging guarantees borough; zip may be NULL and still matches its dim row
+        l.location_key,
 
---           -- Flags, support easy fact queries (e.g. 'all requests that are closed...')
---           CASE WHEN UPPER(r.status) = 'CLOSED' THEN TRUE ELSE FALSE END AS is_closed,
+        -- Staging guarantees complaint_type
+        ct.complaint_type_key,
 
---           -- Additional attributes
---           r.status,
---         --   r.open_data_channel_type AS channel_type,
---           r.resolution_description
-    
---       -- **** INSIDE that, WRITE THIS 4th, join by join:
---       FROM requests r -- All staging data
+        s.status,
+        s.method_of_submission,
+        TIMESTAMP_DIFF(s.closed_date, s.created_date, HOUR) AS hours_to_close,
+        TIMESTAMP_DIFF(s.closed_date, s.created_date, DAY)  AS days_to_close
 
---       LEFT JOIN dim_date d_created -- Date dimension to get created date
---           ON CAST(r.created_date AS DATE) = d_created.full_date -- Cast as date to match yyyy-mm-dd date format
+    FROM stg_311 s
 
---       LEFT JOIN dim_date d_closed
---           ON CAST(r.closed_date AS DATE) = d_closed.full_date -- Cast as date to match yyyy-mm-dd date format
+    LEFT JOIN dim_date created_d
+        ON CAST(s.created_date AS DATE) = created_d.full_date
+    LEFT JOIN dim_date closed_d
+        ON CAST(s.closed_date AS DATE) = closed_d.full_date
 
---       LEFT JOIN dim_location l
---           ON r.borough = l.borough
---           AND r.incident_zip = l.zip_code
+    -- IS NOT DISTINCT FROM so a NULL zip / council_district matches the dim row
+    LEFT JOIN dim_location l
+        ON  s.borough          IS NOT DISTINCT FROM l.borough
+        AND s.council_district IS NOT DISTINCT FROM l.council_district
+        AND s.zip              IS NOT DISTINCT FROM l.zip
 
---       LEFT JOIN dim_complaint c
---           ON r.complaint_type = c.complaint_type
---           AND COALESCE(r.descriptor, '') = COALESCE(c.descriptor, '') -- COALESCE gets the first non-null thing in the list
---             -- The COALESCE ensures that when the fact table has a request when eg:
---             --  - complaint_type = "Street Condition"
---             --  - descriptor = NULL
---             -- If r.descriptor is null, you still want to be able to match to the correct foreign key in dim_complaint
---             -- FOR EXAMPLE:
---                 -- complaint_type_key | complaint_type      | descriptor
---                 -- -------------------|---------------------|-------------
---                 -- key_123           | Street Condition    | Pothole
---                 -- key_456           | Street Condition    | NULL (converted to '')
---                 -- key_789           | Traffic Signal      | Light Out
---                 -- key_101           | Traffic Signal      | NULL (converted to '')
---   )
---  -- Also WRITE THIS 3rd
---   SELECT * FROM final
+    LEFT JOIN dim_complaint_type ct
+        ON  s.complaint_type IS NOT DISTINCT FROM ct.complaint_type
+        AND s.descriptor     IS NOT DISTINCT FROM ct.descriptor
+)
 
--- Below this line is what Jackie did:
-
--- Grain: one row per request
-
--- --Pattern for fact table model:
--- --   WITH
--- --     [fact_source] AS (SELECT * FROM staging),
--- --     [dim1] AS (SELECT surrogate_key, join_keys FROM dim1),
--- --     [dim2] AS (SELECT surrogate_key, join_keys FROM dim2),
--- --     ...
--- --     final AS (
--- --       SELECT
--- --         [fact fields from staging data, maybe renamed with AS ___],
--- --         [dim1 surrogate key] as dim1_key_or_whatever_name,
--- --         [dim2 surrogate key] as dim2_key_or_whatever_name, ...
--- --       FROM [fact_source]
--- --       LEFT JOIN [dim1] ON ... (join fields match)
--- --       LEFT JOIN [dim2] ON ... (join fields match)
--- --     )
--- --   SELECT * FROM final
-------
-
--- WRITE THIS 1st - Start: all data from staging for relevant data
-  WITH requests AS (
-      SELECT * FROM {{ ref('stg_nyc_311_dot') }}
-  ),
--- Continue: named dimension CTEs that you'll need, either the sructure or build them out slowly. 
-
--- WRITE this - THESE 2nd... get all the dimension stuff you need
--- What context describes each row? Then, ONLY the surrogate key + join fields from each dimension.
--- Can reference back to the dimension tables for that.
-  dim_date AS (
-      SELECT date_key, full_date FROM {{ ref('dim_date') }}
-  ),
-
-  dim_location AS (
-      SELECT location_key, borough, zip_code FROM {{ ref('dim_location') }}
-  ),
-
-  dim_complaint AS (
-      SELECT
-          complaint_type_key,
-          complaint_type,
-          descriptor
-      FROM {{ ref('dim_complaint_type') }}
-  ),
- -- WRITE this - the structure for this 3rd: final AS ( ... ) + see end of file as well
-  final AS (
-      -- WRITE this 5th -- fill in the select statement, first surrogate key, then each other thing needed in the fact from source
-      -- Some of which need to come from the LEFT JOINed tables
-      SELECT
-          -- Surrogate key, generated from unique id in data.
-          -- If there were none such (rare), could generate the surrogate id from a combo of things you are sure are unique in staging data.
-          {{ dbt_utils.generate_surrogate_key(['r.request_id']) }} AS request_key,
-
-          -- Natural key, direct from staging data
-          r.request_id,
-
-          -- Timestamps, direct from staging data
-          r.created_date AS request_created_at,
-          r.closed_date AS request_closed_at,
-
-          -- Foreign keys: I usually start writing these as ??? AS created_date_key, etc
-          d_created.date_key AS created_date_key,
-          d_closed.date_key AS closed_date_key,
-          l.location_key,
-          c.complaint_type_key,
-
-          -- Request location details
-          r.incident_address,
-          r.address_type,
-          r.street_name,
-          r.cross_street_1,
-          r.cross_street_2,
-          r.latitude,
-          r.longitude,
-
-          -- Measures: small calculations included in a fact table
-          CASE
-              WHEN r.closed_date IS NOT NULL
-              THEN DATE_DIFF(CAST(r.closed_date AS DATE), CAST(r.created_date AS DATE), DAY)
-              ELSE NULL
-          END AS days_to_close,
-
-          -- Flags, support easy fact queries (e.g. 'all requests that are closed...')
-          CASE WHEN UPPER(r.status) = 'CLOSED' THEN TRUE ELSE FALSE END AS is_closed,
-
-          -- Additional attributes
-          r.status,
-        --   r.open_data_channel_type AS channel_type,
-          r.resolution_description
-    
-      -- **** INSIDE that, WRITE THIS 4th, join by join:
-      FROM requests r -- All staging data
-
-      LEFT JOIN dim_date d_created -- Date dimension to get created date
-          ON CAST(r.created_date AS DATE) = d_created.full_date -- Cast as date to match yyyy-mm-dd date format
-
-      LEFT JOIN dim_date d_closed
-          ON CAST(r.closed_date AS DATE) = d_closed.full_date -- Cast as date to match yyyy-mm-dd date format
-
-      LEFT JOIN dim_location l
-          ON r.borough = l.borough
-          AND r.incident_zip = l.zip_code
-
-      LEFT JOIN dim_complaint c
-          ON r.complaint_type = c.complaint_type
-          AND COALESCE(r.descriptor, '') = COALESCE(c.descriptor, '') -- COALESCE gets the first non-null thing in the list
-            -- The COALESCE ensures that when the fact table has a request when eg:
-            --  - complaint_type = "Street Condition"
-            --  - descriptor = NULL
-            -- If r.descriptor is null, you still want to be able to match to the correct foreign key in dim_complaint
-            -- FOR EXAMPLE:
-                -- complaint_type_key | complaint_type      | descriptor
-                -- -------------------|---------------------|-------------
-                -- key_123           | Street Condition    | Pothole
-                -- key_456           | Street Condition    | NULL (converted to '')
-                -- key_789           | Traffic Signal      | Light Out
-                -- key_101           | Traffic Signal      | NULL (converted to '')
-  )
- -- Also WRITE THIS 3rd
-  SELECT * FROM final
+SELECT * FROM fact
