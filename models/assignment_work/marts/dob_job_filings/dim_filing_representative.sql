@@ -2,7 +2,7 @@
 -- Grain: one row per distinct combo of filing representative attributes
 
 WITH stg_dob AS (
-    SELECT * FROM {{ ref('YOUR-STAGING-DOB-JOB-FILINGS-MODEL-NAME-HERE') }}
+    SELECT * FROM {{ ref('stg_dob_jobs_data') }}
 ),
 
 distinct_filing_reps AS (
@@ -16,14 +16,15 @@ distinct_filing_reps AS (
         filing_representative_city          AS city,
         filing_representative_state         AS state,
         filing_representative_zip           AS zip
-    FROM ??????
-    WHERE filing_representative_first_name    IS NOT NULL
-       OR filing_representative_last_name     IS NOT NULL
-       OR filing_representative_business_name IS NOT NULL
-       OR filing_representative_street_name   IS NOT NULL
-       OR filing_representative_city          IS NOT NULL
-       OR filing_representative_state         IS NOT NULL
-       OR filing_representative_zip           IS NOT NULL
+    FROM stg_dob
+    WHERE filing_representative_first_name     IS NOT NULL
+       OR filing_representative_last_name      IS NOT NULL
+       OR filing_representative_middle_initial IS NOT NULL -- added from HW, OK though
+       OR filing_representative_business_name  IS NOT NULL
+       OR filing_representative_street_name    IS NOT NULL
+       OR filing_representative_city           IS NOT NULL
+       OR filing_representative_state          IS NOT NULL
+       OR filing_representative_zip            IS NOT NULL
 
 ),
 
@@ -44,7 +45,7 @@ dim_filing_rep AS (
         state,
         zip
 
-    FROM ??????
+    FROM distinct_filing_reps
 
 ),
 
@@ -52,11 +53,24 @@ dim_filing_rep AS (
 -- Some DOB job filings don't have one per initial data review
 null_placeholder AS (
 
-    ?????? -- Insert code here for null placeholder row
-
+     SELECT
+        '-1' AS filing_representative_key,
+        CAST(NULL AS STRING) as first_name,
+        CAST(NULL AS STRING) as middle_initial,
+        CAST(NULL AS STRING) as last_name,
+        CAST(NULL AS STRING) as business_name,
+        CAST(NULL AS STRING) as street_name,
+        CAST(NULL AS STRING) as city,
+        CAST(NULL AS STRING) as state,
+        CAST(NULL AS STRING) as zip
+        -- CAST(NULL AS STRING) AS borough,
+        -- -- CAST(NULL AS STRING) AS council_district,
+        -- CAST(NULL AS STRING) AS zip
+        ---- Copied ^ from location null exception as example
 )
 
 SELECT * FROM dim_filing_rep
 
 UNION ALL
-??????
+
+SELECT * FROM null_placeholder
