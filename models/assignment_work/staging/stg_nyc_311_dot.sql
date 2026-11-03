@@ -25,8 +25,7 @@ cleaned AS (
            cross_street_1,
            cross_street_2,
            latitude,
-           longitude,
-           open_data_channel_type
+           longitude
        ),
 
        -- Identifiers
@@ -53,7 +52,7 @@ cleaned AS (
                AND REGEXP_CONTAINS(CAST(incident_zip AS STRING), r'^\d{5}-\d{4}')
            THEN CAST(incident_zip AS STRING)
            ELSE NULL
-       END AS incident_zip,
+       END AS zip,
 
        -- Location - standardized borough, just in case
        CASE
@@ -72,8 +71,8 @@ cleaned AS (
        CAST(latitude AS DECIMAL) AS latitude,
        CAST(longitude AS DECIMAL) AS longitude,
 
-       -- Clearer column name as well for this one
-       CAST(open_data_channel_type AS STRING) AS method_of_submission,
+    --    -- Clearer column name as well for this one
+    --    CAST(open_data_channel_type AS STRING) AS method_of_submission,
 
        -- Metadata
        CURRENT_TIMESTAMP() AS _stg_loaded_at
@@ -92,4 +91,4 @@ cleaned AS (
 )
 
 SELECT * FROM cleaned
--- All should be part of this table: stg_nyc_311_dot
+-- All should be part of this table after running: stg_nyc_311_dot
