@@ -30,7 +30,7 @@ models:
        +materialized: table
        +schema: nyc_311_marts_f26
       
-       shared:
+       conformed:
          +materialized: table
 
        dob_job_filings:
@@ -39,4 +39,21 @@ models:
        dot_311:
          +materialized: table
 
-       
+   project_group9_work:
+     staging:
+       +materialized: table
+       +schema: project_group9_staging
+
+     marts:
+       +materialized: table
+       +schema: project_group9_final_warehouse
+      
+       conformed:
+         +materialized: table
+
+       veh_crashes:
+         +materialized: table
+
+       dohmh_311:
+         +materialized: table
+
