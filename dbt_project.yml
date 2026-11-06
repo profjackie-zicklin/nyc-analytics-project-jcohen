@@ -30,7 +30,7 @@ models:
        +materialized: table
        +schema: nyc_311_marts_f26
       
-       shared:
+       conformed:
          +materialized: table
 
        dob_job_filings:
@@ -38,5 +38,3 @@ models:
 
        dot_311:
          +materialized: table
-
-       

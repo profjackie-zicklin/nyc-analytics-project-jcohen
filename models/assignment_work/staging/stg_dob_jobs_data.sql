@@ -1,6 +1,8 @@
 -- Clean and standardize 311 DOT service request data
 -- One row per service request
 
+---- TODO: NULLIF(UPPER(TRIM(col)), '') for each col to account for differences?? 
+
 WITH source AS (
    SELECT * FROM {{ source('raw', 'source_dob_jobs_data') }}
 ), -- Easier to refer to the dbt reference to a long name table this way
