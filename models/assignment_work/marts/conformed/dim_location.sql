@@ -1,5 +1,6 @@
 -- Location dimension shared by both data sources
 -- Grain: one row per distinct combination of borough / council_district / zip.
+-- dim_location work should be all set at this point, table looks good.
 
 WITH stg_311 AS (
     SELECT * FROM {{ ref('stg_nyc_311_dot') }}
