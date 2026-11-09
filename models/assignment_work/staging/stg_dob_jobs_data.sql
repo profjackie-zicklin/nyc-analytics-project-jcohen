@@ -61,7 +61,7 @@ cleaned AS (
 
    -- Deduplicate
 --    QUALIFY ROW_NUMBER() OVER (PARTITION BY unique_key ORDER BY created_date DESC) = 1
-)
+),
 
 deduped AS (
  
