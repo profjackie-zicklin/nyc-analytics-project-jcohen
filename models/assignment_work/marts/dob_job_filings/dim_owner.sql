@@ -1,5 +1,5 @@
 -- Owner dimension for DOB NOW job filings
--- Grain: one row per distinct combo of property owner attributes
+-- Grain: one row per distinct combo of propertyowner attributes
 
 WITH stg_dob AS (
     SELECT * FROM {{ ref('stg_dob_jobs_data') }}
@@ -10,12 +10,12 @@ distinct_owners AS (
     SELECT DISTINCT
         owner_first_name    AS first_name,
         owner_last_name     AS last_name,
-        owner_business_name AS business_name,
+        owner_s_business_name AS business_name,
         owner_type          AS owner_type
     FROM stg_dob
     WHERE owner_first_name    IS NOT NULL
        OR owner_last_name     IS NOT NULL
-       OR owner_business_name IS NOT NULL
+       OR owner_s_business_name IS NOT NULL
        OR owner_type          IS NOT NULL
 
 ),

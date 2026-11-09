@@ -11,14 +11,14 @@ distinct_applicants AS (
         applicant_license           AS license_number,
         applicant_professional_title AS professional_title,
         applicant_first_name        AS first_name,
-        applicant_middle_initial    AS middle_initial,
+        applicants_middle_initial    AS middle_initial,
         applicant_last_name         AS last_name,
         applicant_business_name     AS business_name
     FROM stg_dob
     WHERE applicant_license            IS NOT NULL
        OR applicant_professional_title IS NOT NULL
        OR applicant_first_name         IS NOT NULL
-       OR applicant_middle_initial     IS NOT NULL
+       OR applicants_middle_initial     IS NOT NULL
        OR applicant_last_name          IS NOT NULL
        OR applicant_business_name      IS NOT NULL
 
