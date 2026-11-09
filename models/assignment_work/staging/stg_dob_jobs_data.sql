@@ -63,5 +63,17 @@ cleaned AS (
 --    QUALIFY ROW_NUMBER() OVER (PARTITION BY unique_key ORDER BY created_date DESC) = 1
 )
 
-SELECT * FROM cleaned
+deduped AS (
+ 
+    SELECT *
+    FROM cleaned
+    WHERE job_filing_number IS NOT NULL
+    QUALIFY ROW_NUMBER() OVER (
+        PARTITION BY job_filing_number
+        ORDER BY current_status_date DESC
+    ) = 1
+ 
+)
+
+SELECT * FROM deduped
 -- All should be part of this table after running: stg_nyc_311_dot
