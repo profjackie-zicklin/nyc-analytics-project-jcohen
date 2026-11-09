@@ -113,10 +113,10 @@ fact AS (
         ON CAST(s.signoff_date AS DATE) = signoff_d.full_date
 
     -- IS NOT DISTINCT FROM so a NULL attribute matches the dim row
-    -- Property location uses postcode (not the applicant's zip)
+    -- Property location uses postcode (not the applicant's zip), but this name is updated in staging
     LEFT JOIN dim_location l
         ON  s.borough   IS NOT DISTINCT FROM l.borough
-        AND s.postcode  IS NOT DISTINCT FROM l.zip
+        AND s.zip  IS NOT DISTINCT FROM l.zip
 
     LEFT JOIN dim_job_type jt
         ON  s.job_type          IS NOT DISTINCT FROM jt.job_type
