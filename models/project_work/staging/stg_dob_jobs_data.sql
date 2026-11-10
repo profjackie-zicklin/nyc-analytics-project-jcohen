@@ -19,7 +19,8 @@ cleaned AS (
          signoff_date,
          borough,
          zip,
-         postcode
+         postcode,
+         commmunity_board
        ),
 
        -- Date/Time
@@ -50,6 +51,7 @@ cleaned AS (
            WHEN UPPER(TRIM(borough)) IN ('STATEN ISLAND', 'RICHMOND COUNTY') THEN 'Staten Island'
            ELSE 'UNKNOWN or CITYWIDE'
        END AS borough,
+       CAST(commmunity_board AS string) AS community_board,
 
        -- Metadata
        CURRENT_TIMESTAMP() AS _stg_loaded_at
@@ -61,7 +63,19 @@ cleaned AS (
 
    -- Deduplicate
 --    QUALIFY ROW_NUMBER() OVER (PARTITION BY unique_key ORDER BY created_date DESC) = 1
+),
+
+deduped AS (
+ 
+    SELECT *
+    FROM cleaned
+    WHERE job_filing_number IS NOT NULL
+    QUALIFY ROW_NUMBER() OVER (
+        PARTITION BY job_filing_number
+        ORDER BY current_status_date DESC
+    ) = 1
+ 
 )
 
-SELECT * FROM cleaned
+SELECT * FROM deduped
 -- All should be part of this table after running: stg_nyc_311_dot

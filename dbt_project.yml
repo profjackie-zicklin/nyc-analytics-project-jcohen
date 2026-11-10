@@ -24,6 +24,24 @@ models:
    assignment_work:
      staging:
        +materialized: table
+       +schema: nyc_311_staging_data_f26___ex
+
+     marts:
+       +materialized: table
+       +schema: nyc_311_marts_f26___ex
+      
+       conformed:
+         +materialized: table
+
+       dob_job_filings_hw:
+         +materialized: table
+
+       dot_311_hw:
+         +materialized: table
+
+   project_work:
+     staging:
+       +materialized: table
        +schema: nyc_311_staging_data_f26
 
      marts:
@@ -37,23 +55,5 @@ models:
          +materialized: table
 
        dot_311:
-         +materialized: table
-
-   project_group9_work:
-     staging:
-       +materialized: table
-       +schema: project_group9_staging
-
-     marts:
-       +materialized: table
-       +schema: project_group9_final_warehouse
-      
-       conformed:
-         +materialized: table
-
-       veh_crashes:
-         +materialized: table
-
-       dohmh_311:
          +materialized: table
 

@@ -13,7 +13,7 @@ stg_dob AS (
 all_locations AS (
 
     SELECT DISTINCT
-        borough, zip
+        borough,zip
     FROM stg_311
     WHERE borough IS NOT NULL
     --    OR council_district IS NOT NULL
