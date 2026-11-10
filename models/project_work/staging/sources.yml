@@ -8,7 +8,7 @@ sources:
       - name: source_dot_service_requests_history
         description: |
           NYC 311 service requests for Dept of Transportation.
-          One row per service request.
+          One row per service request from 311.
       - name: source_dob_jobs_data
         description: |
           NYC DOB job filing applications. One row per app.
