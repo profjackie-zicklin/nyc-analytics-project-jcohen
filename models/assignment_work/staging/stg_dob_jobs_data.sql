@@ -19,7 +19,8 @@ cleaned AS (
          signoff_date,
          borough,
          zip,
-         postcode
+         postcode,
+         commmunity_board
        ),
 
        -- Date/Time
@@ -50,6 +51,7 @@ cleaned AS (
            WHEN UPPER(TRIM(borough)) IN ('STATEN ISLAND', 'RICHMOND COUNTY') THEN 'Staten Island'
            ELSE 'UNKNOWN or CITYWIDE'
        END AS borough,
+       CAST(commmunity_board AS string) AS community_board,
 
        -- Metadata
        CURRENT_TIMESTAMP() AS _stg_loaded_at
