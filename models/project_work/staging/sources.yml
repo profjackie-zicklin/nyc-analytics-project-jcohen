@@ -1,7 +1,7 @@
 version: 2
 sources:
   - name: raw
-    description: Raw data loaded from NYC Open Data
+    description: Raw data loaded from NYC Open Data!
     database: baruch-cis-jcohen
     schema: nyc_311_raw_data 
     tables:
