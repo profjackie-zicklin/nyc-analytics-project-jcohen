@@ -16,7 +16,7 @@ all_locations AS (
         borough,zip
     FROM stg_311
     WHERE borough IS NOT NULL
-    --    OR council_district IS NOT NULL
+    --    OR council_district IS NOT NULL ok
        OR zip IS NOT NULL
 
     UNION DISTINCT
